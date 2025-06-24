@@ -1,0 +1,4 @@
+com\qa\nal\SearchTests.class
+com\qa\nal\utils\ScreenshotOnFailureWatcher.class
+com\qa\nal\BaseTest.class
+com\qa\nal\utils\ExcelReader.class

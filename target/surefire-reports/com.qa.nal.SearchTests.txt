@@ -1,0 +1,110 @@
+-------------------------------------------------------------------------------
+Test set: com.qa.nal.SearchTests
+-------------------------------------------------------------------------------
+Tests run: 12, Failures: 8, Errors: 0, Skipped: 0, Time elapsed: 35.006 s <<< FAILURE! - in com.qa.nal.SearchTests
+com.qa.nal.SearchTests.testSearchQueries  Time elapsed: 2.035 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Test failed for query: Email server down - Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError:Target page, context or browser has been closed
+Error
+    at captureRawStack (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\utils\isomorphic\stackTrace.js:32:17)
+    at LongStandingScope._race (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\utils\isomorphic\manualPromise.js:88:58)
+    at LongStandingScope.race (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\utils\isomorphic\manualPromise.js:81:17)
+    at FrameDispatcher._handleCommand (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:96:36)
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:307:39)
+}
+	at com.qa.nal.SearchTests.testSearchQueries(SearchTests.java:389)
+
+com.qa.nal.SearchTests.searchCPFQuery  Time elapsed: 0.009 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Test failed for query: Circuit Pack Failed - Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError: Target page, context or browser has been closed
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:244:69)
+    at transport.onmessage (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\cli\driver.js:53:59)
+    at Immediate._onImmediate (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\utils\pipeTransport.js:76:16)
+    at process.processImmediate (node:internal/timers:491:21)
+}
+	at com.qa.nal.SearchTests.searchCPFQuery(SearchTests.java:423)
+
+com.qa.nal.SearchTests.navigateToLogManangement  Time elapsed: 0.019 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Navigation to Log Management failed: Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError: Target page, context or browser has been closed
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:244:69)
+    at transport.onmessage (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\cli\driver.js:53:59)
+    at Immediate._onImmediate (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\utils\pipeTransport.js:76:16)
+    at process.processImmediate (node:internal/timers:491:21)
+}
+	at com.qa.nal.SearchTests.navigateToLogManangement(SearchTests.java:453)
+
+com.qa.nal.SearchTests.manageLogs  Time elapsed: 0.046 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Log verification failed: Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError: Target page, context or browser has been closed
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:244:69)
+    at transport.onmessage (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\cli\driver.js:53:59)
+    at Immediate._onImmediate (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\utils\pipeTransport.js:76:16)
+    at process.processImmediate (node:internal/timers:491:21)
+}
+	at com.qa.nal.SearchTests.manageLogs(SearchTests.java:491)
+
+com.qa.nal.SearchTests.navigateSelfServiceIntelligentSearch  Time elapsed: 0.017 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Navigation to Self Service Intelligent Search failed: Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError: Target page, context or browser has been closed
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:244:69)
+    at transport.onmessage (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\cli\driver.js:53:59)
+    at Immediate._onImmediate (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\utils\pipeTransport.js:76:16)
+    at process.processImmediate (node:internal/timers:491:21)
+}
+	at com.qa.nal.SearchTests.navigateSelfServiceIntelligentSearch(SearchTests.java:521)
+
+com.qa.nal.SearchTests.testUploadFile  Time elapsed: 0.034 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Upload failed: Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError: Target page, context or browser has been closed
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:244:69)
+    at transport.onmessage (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\cli\driver.js:53:59)
+    at Immediate._onImmediate (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\utils\pipeTransport.js:76:16)
+    at process.processImmediate (node:internal/timers:491:21)
+}
+	at com.qa.nal.SearchTests.testUploadFile(SearchTests.java:563)
+
+com.qa.nal.SearchTests.navigateUploadedKBManagement  Time elapsed: 0.031 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Navigation to Uploaded KB Management failed: Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError: Target page, context or browser has been closed
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:244:69)
+    at transport.onmessage (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\cli\driver.js:53:59)
+    at Immediate._onImmediate (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\utils\pipeTransport.js:76:16)
+    at process.processImmediate (node:internal/timers:491:21)
+}
+	at com.qa.nal.SearchTests.navigateUploadedKBManagement(SearchTests.java:591)
+
+com.qa.nal.SearchTests.manageKb  Time elapsed: 0.025 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+Failed to manage KB: Error {
+  message='Target page, context or browser has been closed
+  name='TargetClosedError
+  stack='TargetClosedError: Target page, context or browser has been closed
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\dispatchers\dispatcher.js:244:69)
+    at transport.onmessage (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\cli\driver.js:53:59)
+    at Immediate._onImmediate (C:\Users\abhay\AppData\Local\Temp\playwright-java-6092977506892346887\package\lib\server\utils\pipeTransport.js:76:16)
+    at process.processImmediate (node:internal/timers:491:21)
+}
+	at com.qa.nal.SearchTests.manageKb(SearchTests.java:768)
+
