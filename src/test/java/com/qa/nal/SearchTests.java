@@ -6,8 +6,8 @@ import com.qa.nal.utils.ExcelReader;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.qase.commons.annotation.*;
 import java.nio.file.*;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.*;
@@ -53,28 +53,94 @@ public class SearchTests extends BaseTest {
         try {
             try {
                 page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username")).click();
-                page.waitForTimeout(2000);
                 log.info("Username field clicked");
+
                 page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username")).fill(username);
                 log.info("Username field filled");
+
                 page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Password")).click();
-                page.waitForTimeout(2000);
                 log.info("Password field clicked");
+
                 page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Password")).fill(password);
                 log.info("Password field filled");
-                page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Login").setExact(true)).click();
-                page.waitForTimeout(2000);
-                log.info("Login button clicked");
+
+                Locator loginBtn = page.getByRole(AriaRole.BUTTON,
+                        new Page.GetByRoleOptions().setName("Login").setExact(true));
+
+                Locator signInBtn = page.getByRole(AriaRole.BUTTON,
+                        new Page.GetByRoleOptions().setName("Sign In").setExact(true));
+
+                if (loginBtn.isVisible()) {
+
+                    loginBtn.click();
+                    log.info("Login button clicked");
+
+                } else if (signInBtn.isVisible()) {
+
+                    signInBtn.click();
+                    log.info("Sign in button clicked");
+
+                } else {
+
+                    log.error("Neither Login nor Sign in button is visible");
+                    Assertions.fail("Login/Sign in button not found");
+
+                }
             } catch (Exception e) {
                 page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Login with N7MICROSOFT")).click();
                 page.waitForTimeout(2000);
                 log.info("Login with N7MICROSOFT  button clicked");
+
+                page.waitForSelector(
+                        ".loading-screen-wrapper",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+                page.waitForURL(
+                        url -> url.contains("login.microsoftonline"),
+                        new Page.WaitForURLOptions().setTimeout(15000));
+
+                page
+                        .getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Enter your email, phone, or"))
+                        .click();
+                page.waitForTimeout(750);
+
+                page
+                        .getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Enter your email, phone, or"))
+                        .fill(username);
+                page.waitForTimeout(750);
+
+                page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Next")).click();
+                page.waitForTimeout(750);
+
+                page
+                        .getByRole(
+                                AriaRole.TEXTBOX,
+                                new Page.GetByRoleOptions().setName(Pattern.compile("^Enter the password for .*")))
+                        .click();
+                page.waitForTimeout(750);
+
+                page
+                        .getByRole(
+                                AriaRole.TEXTBOX,
+                                new Page.GetByRoleOptions().setName(Pattern.compile("^Enter the password for .*")))
+                        .fill(password);
+                page.waitForTimeout(750);
+
+                page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Sign in")).click();
+                page.waitForTimeout(750);
+
+                page.getByRole(AriaRole.CHECKBOX, new Page.GetByRoleOptions().setName("Don't show this again")).check();
+                page.waitForTimeout(750);
+
+                page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Yes")).click();
+                page.waitForTimeout(750);
             }
+
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             page.waitForURL(url -> url.contains("/app/new-home"));
+
             Assertions.assertTrue(page.url().contains("new-home"), "Login did not navigate to home");
             log.info("Login successful, navigated to home page");
         } catch (Exception e) {
@@ -95,9 +161,8 @@ public class SearchTests extends BaseTest {
 
                 page.waitForTimeout(2000);
                 page.waitForSelector(
-                    ".loading-screen-wrapper",
-                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-                );
+                        ".loading-screen-wrapper",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
                 log.info("Cancel button clicked");
             }
         } catch (Exception e) {
@@ -111,9 +176,9 @@ public class SearchTests extends BaseTest {
     @QaseTitle("Navigate to Intelligent Search")
     public void navigateToIntelligentSearch() {
         page
-            .locator("div")
-            .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Intelligent Search$")))
-            .click();
+                .locator("div")
+                .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Intelligent Search$")))
+                .click();
         page.waitForTimeout(2000);
         log.info("Intelligent Search Card Clicked!");
         page.waitForURL(url -> url.contains("int-answer"));
@@ -121,28 +186,29 @@ public class SearchTests extends BaseTest {
         log.info("Intelligent Search successfully Opened!");
     }
 
-    static boolean cpfFound = false;
+    static boolean lastQueryFound = false;
+    static String lastQuery = "";
 
     private void searchAQuery(String query) {
         page.waitForSelector(
-            ".loading-screen-wrapper",
-            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-        );
+                ".loading-screen-wrapper",
+                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
         page.waitForLoadState(LoadState.NETWORKIDLE);
         page.locator("#searchTxt").fill(query);
         log.info("Search Field Filled with: {}", query);
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Search")).click();
         page.waitForTimeout(2000);
         log.info("Search button Clicked!");
-        if (query == "Circuit Pack Failed") {
-            cpfFound = true;
-            log.info("CPF found!");
+        if (query == lastQuery) {
+            lastQueryFound = true;
+            log.info("last Query found!");
         }
         page.waitForSelector(
-            ".loading-screen-wrapper",
-            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-        );
+                ".loading-screen-wrapper",
+                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
     }
+
+    static int solutionSize;
 
     public boolean checkResults() {
         try {
@@ -156,23 +222,24 @@ public class SearchTests extends BaseTest {
         page.waitForLoadState(LoadState.NETWORKIDLE);
 
         Locator singleResult;
-        if (!cpfFound) {
+        if (!lastQueryFound) {
             singleResult = resultArea
-                .locator(".btn-link")
-                .filter(new Locator.FilterOptions().setHasNotText("open_in_new"))/*
-             * .filter(new
-             * Locator.FilterOptions().
-             * setHasNotText(".html"))
-             */;
+                    .locator(".btn-link")
+                    .filter(new Locator.FilterOptions().setHasNotText("open_in_new"))/*
+                                                                                      * .filter(new
+                                                                                      * Locator.FilterOptions().
+                                                                                      * setHasNotText(".html"))
+                                                                                      */;
         } else {
             singleResult = resultArea
-                .locator(".btn-link")
-                .filter(new Locator.FilterOptions().setHasNotText("open_in_new"));
+                    .locator(".btn-link")
+                    .filter(new Locator.FilterOptions().setHasNotText("open_in_new"));
         }
 
         resultList = singleResult.all();
 
-        log.info("Solution List size: {}", resultList.size());
+        solutionSize = resultList.size();
+        log.info("Solution List size: {}", solutionSize);
 
         for (Locator result : resultList) {
             String text = result.textContent().toLowerCase();
@@ -185,26 +252,12 @@ public class SearchTests extends BaseTest {
     public void copyLink() {
         try {
             page
-                .getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Copy Link"))
-                .waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+                    .getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Copy Link"))
+                    .waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
 
             log.info("Solutions found for Copy Link");
 
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Copy Link")).click();
-            // page.waitForTimeout(2000);
-            // log.info("Copy Link button clicked!");
-
-            // Page page2 = context.newPage();
-
-            // page2.onDialog(Dialog::accept);
-
-            // String copiedUrl = (String) page2.evaluate("() =>
-            // document.querySelector('button.btn-primary').getAttribute('data-clipboard-text')");
-            // page2.navigate(copiedUrl, new
-            // Page.NavigateOptions().setWaitUntil(WaitUntilState.LOAD));
-            // Assertions.assertTrue(
-            // page2.url().contains(copiedUrl),
-            // "Copied link did not navigate to Intelligent Search");
         } catch (Exception e) {
             log.error("Copy Link button not found or failed: {}", e.getMessage());
             Assertions.fail("Copy Link button not found or failed: " + e.getMessage());
@@ -213,11 +266,48 @@ public class SearchTests extends BaseTest {
 
     public void resultFilter() {
         try {
-            page.locator("input[type=\"checkbox\"].mdc-checkbox__native-control").first().click();
-            log.info("Filter applied to results");
-            page.waitForTimeout(2000);
+            // Get all checkboxes inside the expanded filter panel
+            List<Locator> checkboxes = page.locator("div.mat-expansion-panel-body mat-checkbox").all();
+            log.info("Total filter checkboxes found: " + checkboxes.size());
+
+            boolean clicked = false;
+
+            for (Locator checkbox : checkboxes) {
+                // Get the wrapper/parent text (label + count)
+                Locator wrapper = checkbox.locator("xpath=parent::*");
+                String fullText = wrapper.textContent().trim();
+
+                // Extract count from text like "Mazor (4)"
+                Pattern pattern = Pattern.compile("\\((\\d+)\\)");
+                Matcher matcher = pattern.matcher(fullText);
+                int count = matcher.find() ? Integer.parseInt(matcher.group(1)) : 0;
+
+                log.info("Filter option: '{}', Result count: {}", fullText, count);
+
+                if (count > 0) {
+                    // Click the checkbox inner container
+                    checkbox.locator(".mat-checkbox-inner-container").click();
+                    page.waitForTimeout(2000);
+
+                    checkResults();
+
+                    if (count == solutionSize) {
+                        log.info("✅ Results Validated! Filter Result: {}, Visible Results: {}", count, solutionSize);
+                    } else {
+                        log.warn("❌ Results Mismatched! Filter Result: {}, Visible Results: {}", count, solutionSize);
+                    }
+
+                    clicked = true;
+                    break;
+                }
+            }
+
+            if (!clicked) {
+                log.warn("⚠️ No clickable checkbox with results > 0 was found.");
+            }
+
         } catch (Exception e) {
-            log.error("Filter not applied: {}", e.getMessage());
+            log.error("❌ Filter not applied: {}", e.getMessage());
             Assertions.fail("Filter not applied: " + e.getMessage());
         }
     }
@@ -249,9 +339,8 @@ public class SearchTests extends BaseTest {
         element.click();
         page.waitForTimeout(2000);
         page.waitForSelector(
-            ".loading-screen-wrapper",
-            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-        );
+                ".loading-screen-wrapper",
+                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
         page.waitForSelector("body");
 
         if (text.contains(".pdf")) {
@@ -263,47 +352,41 @@ public class SearchTests extends BaseTest {
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Go").setExact(true)).click();
             page.waitForTimeout(2000);
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             page.waitForSelector("pdf-viewer >> div");
             if (randomPage > 1) {
                 page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("First")).click();
                 page.waitForTimeout(2000);
                 page.waitForSelector(
-                    ".loading-screen-wrapper",
-                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-                );
+                        ".loading-screen-wrapper",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
                 page.waitForSelector("pdf-viewer >> div");
             }
             if (randomPage < totalPages) {
                 page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Last")).click();
                 page.waitForTimeout(2000);
                 page.waitForSelector(
-                    ".loading-screen-wrapper",
-                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-                );
+                        ".loading-screen-wrapper",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
                 page.waitForSelector("pdf-viewer >> div");
             }
 
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
 
             // page.getByRole(AriaRole.BUTTON, new
             // Page.GetByRoleOptions().setName("Download")).click();
 
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
 
             try {
                 page.waitForSelector(
-                    "mat-chip-option.mat-mdc-chip",
-                    new Page.WaitForSelectorOptions().setTimeout(10000)
-                );
+                        "mat-chip-option.mat-mdc-chip",
+                        new Page.WaitForSelectorOptions().setTimeout(10000));
 
                 List<Locator> additionalRedsults = page.locator("mat-chip-option.mat-mdc-chip").all();
                 log.info("Additional results found: {}", additionalRedsults.size());
@@ -313,20 +396,18 @@ public class SearchTests extends BaseTest {
                 log.info("Clicking additional result: {}", additionalRedsults.get(randomIndex).textContent());
                 page.waitForTimeout(2000);
                 page.waitForSelector(
-                    ".loading-screen-wrapper",
-                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-                );
+                        ".loading-screen-wrapper",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             } catch (Exception e) {
                 log.info("No additional results found.");
             }
         }
 
-        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Close")).click();
+        page.locator("button[type=\"button\"][aria-label=\"Close\"].close").click();
         page.waitForTimeout(2000);
         page.waitForSelector(
-            ".loading-screen-wrapper",
-            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-        );
+                ".loading-screen-wrapper",
+                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
     }
 
     @Test
@@ -335,72 +416,86 @@ public class SearchTests extends BaseTest {
     @QaseTitle("Search Query")
     public void testSearchQueries() {
         List<String> searchQueries = ExcelReader.readQueriesFromExcel(
-            "src/test/resources/IntelligentSearchQueries.xlsx",
-            "Devdemo"
-        );
+                "src/test/resources/IntelligentSearchQueries.xlsx",
+                "Devdemo");
         Assertions.assertFalse(searchQueries.isEmpty(), "No queries found in Excel file.");
 
-        for (String query : searchQueries) {
-            try {
-                searchAQuery(query);
+        lastQuery = searchQueries.get(searchQueries.size() - 1);
+        log.info("Last Query: " + lastQuery);
 
-                copyLink();
+        for (int i = 0; i < searchQueries.size(); i++) {
+            String query = searchQueries.get(i);
+            if (i < searchQueries.size() - 1) {
+                try {
+                    searchAQuery(query);
 
-                // resultFilter();
+                    copyLink();
 
-                if (!checkResults()) {
-                    log.info("No results found for query: {}", query);
-                    continue;
-                }
-
-                int pass = 0;
-                while (pass < 2) {
-                    handleResult();
-                    if (htmlfound || elementInvisible) {
-                        htmlfound = false;
-                        elementInvisible = false;
-                        pass++;
+                    if (!checkResults()) {
+                        log.info("No results found for query: {}", query);
                         continue;
                     }
 
-                    if (pass == 0 && !htmlfound) {
-                        page.getByLabel("Feedback").getByTitle("Negative Feedback").click();
-                        page.waitForTimeout(2000);
-                        page.waitForSelector(
-                            ".loading-screen-wrapper",
-                            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-                        );
+                    page.waitForTimeout(2500);
 
-                        page
-                            .getByRole(
-                                AriaRole.TEXTBOX,
-                                new Page.GetByRoleOptions().setName("Can you please tell us why")
-                            )
-                            .fill("Issue in this result!");
-                        page
-                            .getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Submit").setExact(true))
-                            .click();
-                        page.waitForTimeout(2000);
-                        page.waitForSelector(
-                            ".loading-screen-wrapper",
-                            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-                        );
+                    boolean isVisible = page.locator("mat-accordion.mat-accordion").isVisible();
 
-                        page.waitForLoadState(LoadState.NETWORKIDLE);
-                    } else if (pass == 1 && !htmlfound) {
-                        page.getByLabel("Feedback").getByTitle("Positive Feedback").click();
-                        page.waitForTimeout(2000);
-                        page.waitForSelector(
-                            ".loading-screen-wrapper",
-                            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-                        );
+                    if (isVisible) {
+                        log.info("Filters found!");
+                        // filter
+                        resultFilter();
 
-                        page.waitForLoadState(LoadState.NETWORKIDLE);
+                    } else {
+                        log.info("Filters are not available!");
                     }
-                    pass++;
+
+                    int pass = 0;
+                    while (pass < 2) {
+                        handleResult();
+                        if (htmlfound || elementInvisible) {
+                            htmlfound = false;
+                            elementInvisible = false;
+                            pass++;
+                            continue;
+                        }
+
+                        if (pass == 0 && !htmlfound) {
+                            page.getByLabel("Feedback").getByTitle("Negative Feedback").click();
+                            page.waitForTimeout(2000);
+                            page.waitForSelector(
+                                    ".loading-screen-wrapper",
+                                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+                            page
+                                    .getByRole(
+                                            AriaRole.TEXTBOX,
+                                            new Page.GetByRoleOptions().setName("Can you please tell us why"))
+                                    .fill("Issue in this result!");
+                            page
+                                    .getByRole(
+                                            AriaRole.BUTTON,
+                                            new Page.GetByRoleOptions().setName("Submit").setExact(true))
+                                    .click();
+                            page.waitForTimeout(2000);
+                            page.waitForSelector(
+                                    ".loading-screen-wrapper",
+                                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+                            page.waitForLoadState(LoadState.NETWORKIDLE);
+                        } else if (pass == 1 && !htmlfound) {
+                            page.getByLabel("Feedback").getByTitle("Positive Feedback").click();
+                            page.waitForTimeout(2000);
+                            page.waitForSelector(
+                                    ".loading-screen-wrapper",
+                                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+                            page.waitForLoadState(LoadState.NETWORKIDLE);
+                        }
+                        pass++;
+                    }
+                } catch (Exception e) {
+                    Assertions.fail("Test failed for query: " + query + " - " + e.getMessage());
                 }
-            } catch (Exception e) {
-                Assertions.fail("Test failed for query: " + query + " - " + e.getMessage());
             }
         }
     }
@@ -408,35 +503,33 @@ public class SearchTests extends BaseTest {
     @Test
     @Order(6)
     @QaseId(6)
-    @QaseTitle("Test Circuit Pack Failed")
-    public void searchCPFQuery() {
+    @QaseTitle("Test Last Query in sheet")
+    public void searchLastQuery() {
         try {
-            searchAQuery("Circuit Pack Failed");
-            if (!checkResults()) return;
+            searchAQuery(lastQuery);
+            if (!checkResults())
+                return;
 
             page.getByRole(AriaRole.LISTITEM).locator(".up-action").first().click();
             page.waitForTimeout(2000);
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             page.getByRole(AriaRole.LISTITEM).locator(".down-action").nth(0).click();
             page.waitForTimeout(2000);
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             page
-                .getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Can you please tell us why"))
-                .fill("Issue in this result!");
+                    .getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Can you please tell us why"))
+                    .fill("Issue in this result!");
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Submit")).click();
             page.waitForTimeout(2000);
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
         } catch (Exception e) {
-            Assertions.fail("Test failed for query: Circuit Pack Failed - " + e.getMessage());
+            Assertions.fail("Test failed for query: " + lastQuery + "- " + e.getMessage());
         }
     }
 
@@ -460,9 +553,8 @@ public class SearchTests extends BaseTest {
 
             page.waitForURL(url -> url.contains("intelligent-mgmt"));
             Assertions.assertTrue(
-                page.url().contains("intelligent-mgmt"),
-                "Log Management page did not load as expected"
-            );
+                    page.url().contains("intelligent-mgmt"),
+                    "Log Management page did not load as expected");
 
             log.info("Log Management page loaded successfully");
         } catch (Exception e) {
@@ -479,22 +571,19 @@ public class SearchTests extends BaseTest {
         try {
             page.waitForLoadState(LoadState.NETWORKIDLE);
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             page.locator(".action-btn").first().click();
 
             log.info("Clicked edit icon.");
 
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
 
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             Locator checkBox = page.locator("#createKB");
             if (!checkBox.isChecked()) {
                 checkBox.check();
@@ -502,9 +591,8 @@ public class SearchTests extends BaseTest {
             }
 
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Save")).click();
             page.waitForTimeout(2000);
             log.info("Save clicked.");
@@ -525,15 +613,14 @@ public class SearchTests extends BaseTest {
             page.waitForTimeout(2000);
 
             page
-                .getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(" Self Service Intelligent Search"))
-                .click();
+                    .getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(" Self Service Intelligent Search"))
+                    .click();
             log.info("Self Service Intelligent Search Clicked");
 
             page.waitForURL(url -> url.contains("self-serve-kb"));
             Assertions.assertTrue(
-                page.url().contains("self-serve-kb"),
-                "Self Service Intelligent Search page did not load as expected"
-            );
+                    page.url().contains("self-serve-kb"),
+                    "Self Service Intelligent Search page did not load as expected");
 
             log.info("Self Service Intelligent Search page loaded successfully");
 
@@ -564,13 +651,28 @@ public class SearchTests extends BaseTest {
             fileInput.setInputFiles(filePath.toAbsolutePath());
             page.waitForTimeout(1000);
 
-            page.getByRole(AriaRole.COMBOBOX).click();
-            page.waitForTimeout(1000);
+            try {
+                page.waitForSelector(
+                        "div[role=\"combobox\"] input[type=\"text\"][aria-autocomplete=\"list\"]",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(10000));
+                page.locator("div[role=\"combobox\"] input[type=\"text\"][aria-autocomplete=\"list\"]").click();
+                page.waitForTimeout(1000);
 
-            page.getByRole(AriaRole.COMBOBOX).fill("alinity");
-            page.waitForTimeout(1000);
+                page.locator("div[role=\"combobox\"] input[type=\"text\"][aria-autocomplete=\"list\"]").fill("alinity");
+                page.waitForTimeout(1000);
 
-            page.getByRole(AriaRole.OPTION, new Page.GetByRoleOptions().setName("ALINITY I")).click();
+                page.waitForSelector(
+                        "//ng-dropdown-panel//div[@role='option']",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(10000));
+
+                List<Locator> manufacturersList = page.locator("//ng-dropdown-panel//div[@role='option']").all();
+
+                String selectedManufacturer = manufacturersList.get(0).textContent().trim();
+                manufacturersList.get(0).click();
+                log.info("Manufacturer option clicked: {}", selectedManufacturer);
+            } catch (Exception e) {
+                log.info("Modal Input field not found!");
+            }
             page.waitForTimeout(1000);
 
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Upload")).click();
@@ -599,9 +701,8 @@ public class SearchTests extends BaseTest {
 
             page.waitForURL(url -> url.contains("uploaded-kbs"));
             Assertions.assertTrue(
-                page.url().contains("uploaded-kbs"),
-                "Uploaded KB Management page did not load as expected"
-            );
+                    page.url().contains("uploaded-kbs"),
+                    "Uploaded KB Management page did not load as expected");
 
             log.info("Uploaded KB Management page loaded successfully");
 
@@ -619,9 +720,8 @@ public class SearchTests extends BaseTest {
             page.waitForTimeout(1000);
 
             page.waitForSelector(
-                "input[type=\"text\"].mdc-text-field__input",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE)
-            );
+                    "input[type=\"text\"].mdc-text-field__input",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
 
             page.locator("input[type=\"text\"].mdc-text-field__input").click();
             log.info("Clicked Tag Input Field.");
@@ -670,14 +770,13 @@ public class SearchTests extends BaseTest {
     public void transactionLogs() {
         try {
             page
-                .locator("app-custom-edit-stepper div")
-                .filter(new Locator.FilterOptions().setHasText("Transaction Logs"))
-                .nth(1)
-                .click();
+                    .locator("app-custom-edit-stepper div")
+                    .filter(new Locator.FilterOptions().setHasText("Transaction Logs"))
+                    .nth(1)
+                    .click();
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             log.info("Clicked Transaction Logs.");
             page.waitForTimeout(1000);
 
@@ -690,9 +789,8 @@ public class SearchTests extends BaseTest {
             page.waitForTimeout(1000);
 
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             log.info("Transaction Logs loaded successfully.");
         } catch (Exception e) {
             log.info("Failed to access Transaction Logs: {}", e.getMessage());
@@ -709,43 +807,39 @@ public class SearchTests extends BaseTest {
             page.waitForTimeout(1000);
 
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             log.info("Clicked eye icon.");
 
             // File Preview
             page
-                .locator("app-custom-edit-stepper div")
-                .filter(new Locator.FilterOptions().setHasText("File Preview"))
-                .nth(1)
-                .click();
+                    .locator("app-custom-edit-stepper div")
+                    .filter(new Locator.FilterOptions().setHasText("File Preview"))
+                    .nth(1)
+                    .click();
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             log.info("Clicked File Preview.");
 
             page.waitForTimeout(3500);
 
             // files tag
             page
-                .locator("app-custom-edit-stepper div")
-                .filter(new Locator.FilterOptions().setHasText("File Tags"))
-                .nth(1)
-                .click();
+                    .locator("app-custom-edit-stepper div")
+                    .filter(new Locator.FilterOptions().setHasText("File Tags"))
+                    .nth(1)
+                    .click();
             page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
-            );
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
             log.info("Clicked File Tags.");
             page.waitForTimeout(1000);
 
             try {
                 page.waitForSelector(
-                    "button[title=\"Add New Tags\"]",
-                    new Page.WaitForSelectorOptions().setTimeout(10000)
-                );
+                        "button[title=\"Add New Tags\"]",
+                        new Page.WaitForSelectorOptions().setTimeout(10000));
                 log.info("Add New Tags button is visible.");
 
                 // add tag
@@ -794,4 +888,3 @@ public class SearchTests extends BaseTest {
         }
     }
 }
-// Abhay Bhati
