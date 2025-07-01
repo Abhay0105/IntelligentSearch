@@ -1,30 +1,21 @@
 -------------------------------------------------------------------------------
 Test set: com.qa.nal.SearchTests
 -------------------------------------------------------------------------------
-Tests run: 12, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 351.434 s <<< FAILURE! - in com.qa.nal.SearchTests
-com.qa.nal.SearchTests.testUploadFile  Time elapsed: 2.797 s  <<< FAILURE!
+Tests run: 12, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 252.149 s <<< FAILURE! - in com.qa.nal.SearchTests
+com.qa.nal.SearchTests.testSearchQueries  Time elapsed: 156.638 s  <<< FAILURE!
 org.opentest4j.AssertionFailedError: 
-Upload failed: Error {
-  message='Error: Element is not an <input>, <textarea> or [contenteditable] element
-  name='Error
-  stack='Error: Error: Element is not an <input>, <textarea> or [contenteditable] element
-    at CRExecutionContext.evaluateWithArguments (C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\chromium\crExecutionContext.js:79:13)
-    at async LongStandingScope._race (C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\utils\isomorphic\manualPromise.js:95:14)
-    at async evaluateExpression (C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\javascript.js:223:12)
-    at async ElementHandle.evaluateInUtility (C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\dom.js:126:14)
-    at async C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\dom.js:534:22
-    at async ElementHandle._retryAction (C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\dom.js:287:22)
-    at async ElementHandle._fill (C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\dom.js:530:12)
-    at async C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\frames.js:972:25
-    at async Frame.retryWithProgressAndTimeouts (C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\frames.js:916:24)
-    at async C:\Users\abhay\AppData\Local\Temp\playwright-java-2514938591664396382\package\lib\server\frames.js:1039:29
+Test failed for query: malfunctioning - Error {
+  message='Timeout 60000ms exceeded.
+  name='TimeoutError
+  stack='TimeoutError: Timeout 60000ms exceeded.
+    at ProgressController.run (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\progress.js:76:26)
+    at Frame.waitForSelector (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\frames.js:647:23)
+    at FrameDispatcher.waitForSelector (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\dispatchers\frameDispatcher.js:82:116)
+    at FrameDispatcher._handleCommand (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\dispatchers\dispatcher.js:94:40)
+    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\dispatchers\dispatcher.js:307:39)
 }
 Call log:
--   - waiting for getByRole(AriaRole.COMBOBOX)
--     - locator resolved to <div role="combobox" class="ng-input" aria-expanded="true" aria-haspopup="listbox" aria-owns="a2705289d897">…</div>
--     - fill("alinity")
--   - attempting fill action
--     - waiting for element to be visible, enabled and editable
+-   - waiting for locator("pdf-viewer").locator("div") to be visible
 
-	at com.qa.nal.SearchTests.testUploadFile(SearchTests.java:622)
+	at com.qa.nal.SearchTests.testSearchQueries(SearchTests.java:494)
 

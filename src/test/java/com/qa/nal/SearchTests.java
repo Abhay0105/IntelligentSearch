@@ -20,9 +20,9 @@ import org.slf4j.*;
 public class SearchTests extends BaseTest {
 
     Dotenv dotenv = Dotenv.load();
-    private final String username = dotenv.get("APP_USERNAME");
-    private final String password = dotenv.get("PASSWORD");
-    private final String loginUrl = dotenv.get("DEVDEMO_URL");
+    private final String username = dotenv.get("USERNAME_MDT");
+    private final String password = dotenv.get("PASSWORD_MDT");
+    private final String loginUrl = dotenv.get("MEDTRONIC_URL");
     private static final Logger log = LoggerFactory.getLogger(SearchTests.class);
     public static List<Locator> resultList;
     static boolean htmlfound;
@@ -225,11 +225,7 @@ public class SearchTests extends BaseTest {
         if (!lastQueryFound) {
             singleResult = resultArea
                     .locator(".btn-link")
-                    .filter(new Locator.FilterOptions().setHasNotText("open_in_new"))/*
-                                                                                      * .filter(new
-                                                                                      * Locator.FilterOptions().
-                                                                                      * setHasNotText(".html"))
-                                                                                      */;
+                    .filter(new Locator.FilterOptions().setHasNotText("open_in_new")).filter(new Locator.FilterOptions().setHasNotText(".html"));
         } else {
             singleResult = resultArea
                     .locator(".btn-link")
@@ -327,6 +323,7 @@ public class SearchTests extends BaseTest {
         if (text.contains(".html")) {
             htmlfound = true;
             log.info("HTML found");
+            return;
         }
 
         if (/* text.contains(".html") || */text.contains("open_in_new") || !element.isVisible()) {
@@ -417,7 +414,7 @@ public class SearchTests extends BaseTest {
     public void testSearchQueries() {
         List<String> searchQueries = ExcelReader.readQueriesFromExcel(
                 "src/test/resources/IntelligentSearchQueries.xlsx",
-                "Devdemo");
+                "Medtronics ");
         Assertions.assertFalse(searchQueries.isEmpty(), "No queries found in Excel file.");
 
         lastQuery = searchQueries.get(searchQueries.size() - 1);
@@ -634,7 +631,7 @@ public class SearchTests extends BaseTest {
     @Test
     @Order(10)
     @QaseId(10)
-    @QaseTitle("Uploaded File")
+    @QaseTitle("Upload File")
     public void testUploadFile() {
         try {
             Locator fileInput = page.locator("input[type='file']");
