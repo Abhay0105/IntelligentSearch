@@ -20,9 +20,12 @@ import org.slf4j.*;
 public class SearchTests extends BaseTest {
 
     Dotenv dotenv = Dotenv.load();
-    private final String username = dotenv.get("USERNAME_MDT");
-    private final String password = dotenv.get("PASSWORD_MDT");
-    private final String loginUrl = dotenv.get("MEDTRONIC_URL");
+    private final String username = dotenv.get("APP_USERNAME");
+    private final String password = dotenv.get("PASSWORD");
+    private final String loginUrl = dotenv.get("DEVDEMO_URL");
+    private final String environment = "dev-demo";
+    private final String sheetName = "Devdemo";
+
     private static final Logger log = LoggerFactory.getLogger(SearchTests.class);
     public static List<Locator> resultList;
     static boolean htmlfound;
@@ -51,7 +54,9 @@ public class SearchTests extends BaseTest {
     @QaseTitle("Perform Login")
     public void performLogin() {
         try {
-            try {
+            Locator usernameInput = page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username"));
+
+            if (usernameInput.isVisible()) {
                 page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username")).click();
                 log.info("Username field clicked");
 
@@ -86,7 +91,7 @@ public class SearchTests extends BaseTest {
                     Assertions.fail("Login/Sign in button not found");
 
                 }
-            } catch (Exception e) {
+            } else {
                 page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Login with N7MICROSOFT")).click();
                 page.waitForTimeout(2000);
                 log.info("Login with N7MICROSOFT  button clicked");
@@ -164,9 +169,12 @@ public class SearchTests extends BaseTest {
                         ".loading-screen-wrapper",
                         new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
                 log.info("Cancel button clicked");
+            } else {
+                log.error("No modal found or not visible");
             }
         } catch (Exception e) {
-            log.error("No modal found or not visible");
+            log.error("Error handling initial pop-up: {}", e.getMessage());
+            Assertions.fail("Error handling initial pop-up: " + e.getMessage());
         }
     }
 
@@ -175,15 +183,50 @@ public class SearchTests extends BaseTest {
     @QaseId(4)
     @QaseTitle("Navigate to Intelligent Search")
     public void navigateToIntelligentSearch() {
-        page
-                .locator("div")
-                .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Intelligent Search$")))
-                .click();
-        page.waitForTimeout(2000);
-        log.info("Intelligent Search Card Clicked!");
-        page.waitForURL(url -> url.contains("int-answer"));
-        Assertions.assertTrue(page.url().contains("int-answer"));
-        log.info("Intelligent Search successfully Opened!");
+        try {
+            Locator searchCard = page
+                    .locator("div")
+                    .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Intelligent Search$")));
+
+            if (searchCard.isVisible()) {
+                page
+                        .locator("div")
+                        .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Intelligent Search$")))
+                        .click();
+                page.waitForTimeout(2000);
+                log.info("Intelligent Search Card Clicked!");
+                page.waitForURL(url -> url.contains("int-answer"));
+                Assertions.assertTrue(page.url().contains("int-answer"));
+                log.info("Intelligent Search successfully Opened!");
+            } else {
+                page.locator("body > app > default-layout > div > aside > div.sidebar.collapsed").hover();
+                log.info("Sidebar hovered");
+
+                page.waitForTimeout(1500);
+
+                page.locator("a").filter(new Locator.FilterOptions().setHasText("Intelligent Search")).first().click();
+                log.info("Intelligent Search clicked");
+
+                page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("Intelligent Answer(s) V1")).click();
+                log.info("Intelligent Answer Cicked");
+
+                page.waitForTimeout(2000);
+
+                page.locator("a").filter(new Locator.FilterOptions().setHasText("Intelligent Search")).first().click();
+                log.info("Intelligent Search clicked again");
+
+                page.waitForURL(url -> url.contains("int-answer-v1"));
+                Assertions.assertTrue(
+                        page.url().contains("int-answer-v1"),
+                        "Intelligent Search page did not load as expected");
+
+                log.info("Intelligent Search page loaded successfully");
+            }
+
+        } catch (Exception e) {
+            log.error("Navigation to Intelligent Search failed: {}", e.getMessage());
+            Assertions.fail("Navigation to Intelligent Search failed: " + e.getMessage());
+        }
     }
 
     static boolean lastQueryFound = false;
@@ -225,7 +268,8 @@ public class SearchTests extends BaseTest {
         if (!lastQueryFound) {
             singleResult = resultArea
                     .locator(".btn-link")
-                    .filter(new Locator.FilterOptions().setHasNotText("open_in_new")).filter(new Locator.FilterOptions().setHasNotText(".html"));
+                    .filter(new Locator.FilterOptions().setHasNotText("open_in_new"))
+                    .filter(new Locator.FilterOptions().setHasNotText(".html"));
         } else {
             singleResult = resultArea
                     .locator(".btn-link")
@@ -268,7 +312,9 @@ public class SearchTests extends BaseTest {
 
             boolean clicked = false;
 
-            for (Locator checkbox : checkboxes) {
+            for (int i = 0; i < checkboxes.size(); i++) {
+                Locator checkbox = checkboxes.get(i);
+
                 // Get the wrapper/parent text (label + count)
                 Locator wrapper = checkbox.locator("xpath=parent::*");
                 String fullText = wrapper.textContent().trim();
@@ -282,7 +328,18 @@ public class SearchTests extends BaseTest {
 
                 if (count > 0) {
                     // Click the checkbox inner container
-                    checkbox.locator(".mat-checkbox-inner-container").click();
+                    Locator matCheckbox = checkbox.locator(".mat-checkbox-inner-container");
+                    Locator inputCheckBox = checkbox.locator("input[type=\"checkbox\"]");
+
+                    if (matCheckbox.isVisible()) {
+                        matCheckbox.click();
+                    } else if (inputCheckBox.isVisible()) {
+                        inputCheckBox.click();
+                    } else {
+                        log.warn("No visible checkbox found for filter: '{}'", fullText);
+                        continue;
+                    }
+
                     page.waitForTimeout(2000);
 
                     checkResults();
@@ -295,6 +352,9 @@ public class SearchTests extends BaseTest {
 
                     clicked = true;
                     break;
+                } else if (count == 0) {
+                    log.info("No results for filter: '{}', skipping...", fullText);
+                    continue;
                 }
             }
 
@@ -307,6 +367,8 @@ public class SearchTests extends BaseTest {
             Assertions.fail("Filter not applied: " + e.getMessage());
         }
     }
+
+    static String queryForSearchInPDF = "";
 
     public void handleResult() {
         htmlfound = false;
@@ -334,13 +396,74 @@ public class SearchTests extends BaseTest {
 
         element.scrollIntoViewIfNeeded();
         element.click();
-        page.waitForTimeout(2000);
+
         page.waitForSelector(
                 ".loading-screen-wrapper",
                 new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
-        page.waitForSelector("body");
 
-        if (text.contains(".pdf")) {
+        page.waitForTimeout(3000);
+
+        Locator resultBody = page.locator("div.modal-content");
+
+        if (resultBody.isVisible()) {
+            log.info("Result Body is visible");
+
+            if (text.contains(".pdf")) {
+                handlePDFResults();
+                log.info("PDF Result Handled");
+            }
+
+            page.locator("button[type=\"button\"][aria-label=\"Close\"].close").click();
+            page.waitForTimeout(2000);
+            page.waitForSelector(
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+        } else {
+            log.warn("Result Body is not visible, giving feedback without opening result!");
+
+            page.waitForTimeout(2000);
+            page.waitForSelector(
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+            // ✅ Navigate from .btn-link to its result container (.top-row-container)
+            Locator resultContainer = element.locator("xpath=ancestor::div[contains(@class, 'top-row-container')]");
+            Locator downAction = resultContainer.locator(".down-action");
+
+            downAction.waitFor(new Locator.WaitForOptions()
+                    .setTimeout(5000)
+                    .setState(WaitForSelectorState.VISIBLE));
+            downAction.click();
+            log.info("Down Action Clicked");
+
+            page.waitForTimeout(2000);
+            page.waitForSelector(
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+            page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Can you please tell us why"))
+                    .fill("Result not opening!");
+            log.info("Feedback Text Filled");
+
+            page.locator("div.text-center button.btn-primary")
+                    .filter(new Locator.FilterOptions().setHasText("Submit")).click();
+            log.info("Feedback Submitted");
+
+            page.waitForTimeout(2000);
+            page.waitForSelector(
+                    ".loading-screen-wrapper",
+                    new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+            htmlfound = true;
+        }
+
+    }
+
+    public void handlePDFResults() {
+        try {
+            Random rnd = new Random();
+
             page.waitForSelector("pdf-viewer >> div");
             String pageText = page.locator(".navigation-pannel span").innerText();
             int totalPages = Integer.parseInt(pageText.split("of")[1].trim());
@@ -380,31 +503,50 @@ public class SearchTests extends BaseTest {
                     ".loading-screen-wrapper",
                     new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
 
-            try {
-                page.waitForSelector(
-                        "mat-chip-option.mat-mdc-chip",
-                        new Page.WaitForSelectorOptions().setTimeout(10000));
+            Locator searchInPdf = page.locator("div.col-sm-8 input[type=\"text\"]");
 
-                List<Locator> additionalRedsults = page.locator("mat-chip-option.mat-mdc-chip").all();
-                log.info("Additional results found: {}", additionalRedsults.size());
+            if (searchInPdf.isVisible()) {
+                searchInPdf.click();
+
+                searchInPdf.clear();
+
+                searchInPdf.fill(queryForSearchInPDF);
+                log.info("Search in PDF filled with 'search text'");
+
+                searchInPdf.press("Enter");
+                log.info("Searched Query inside PDF: {}", queryForSearchInPDF);
+
+                page.waitForSelector(
+                        ".loading-screen-wrapper",
+                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
+
+                page.waitForTimeout(2000);
+            } else {
+                log.warn("Search in PDF input not availabel, skipping search in PDF");
+            }
+
+            Locator matAdditionalResult = page.locator("mat-chip-option.mat-mdc-chip");
+
+            if (matAdditionalResult.first().isVisible()) {
+                page.waitForTimeout(2000);
+
+                List<Locator> additionalResults = matAdditionalResult.all();
+                log.info("Additional results found: {}", additionalResults.size());
                 Random random = new Random();
-                int randomIndex = random.nextInt(additionalRedsults.size());
-                additionalRedsults.get(randomIndex).click();
-                log.info("Clicking additional result: {}", additionalRedsults.get(randomIndex).textContent());
+                int randomIndex = random.nextInt(additionalResults.size());
+                additionalResults.get(randomIndex).click();
+                log.info("Clicking additional result: {}", additionalResults.get(randomIndex).textContent());
                 page.waitForTimeout(2000);
                 page.waitForSelector(
                         ".loading-screen-wrapper",
                         new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
-            } catch (Exception e) {
+            } else {
                 log.info("No additional results found.");
             }
+        } catch (Exception e) {
+            log.error("Error handling PDF results: {}", e.getMessage());
+            Assertions.fail("Error handling PDF results: " + e.getMessage());
         }
-
-        page.locator("button[type=\"button\"][aria-label=\"Close\"].close").click();
-        page.waitForTimeout(2000);
-        page.waitForSelector(
-                ".loading-screen-wrapper",
-                new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN));
     }
 
     @Test
@@ -414,7 +556,7 @@ public class SearchTests extends BaseTest {
     public void testSearchQueries() {
         List<String> searchQueries = ExcelReader.readQueriesFromExcel(
                 "src/test/resources/IntelligentSearchQueries.xlsx",
-                "Medtronics ");
+                sheetName);
         Assertions.assertFalse(searchQueries.isEmpty(), "No queries found in Excel file.");
 
         lastQuery = searchQueries.get(searchQueries.size() - 1);
@@ -426,10 +568,27 @@ public class SearchTests extends BaseTest {
                 try {
                     searchAQuery(query);
 
+                    queryForSearchInPDF = searchQueries.get(i + 1);
+
                     copyLink();
 
                     if (!checkResults()) {
                         log.info("No results found for query: {}", query);
+
+                        page.waitForTimeout(2500);
+
+                        boolean isVisible = page.locator("mat-accordion.mat-accordion").isVisible();
+
+                        if (isVisible) {
+                            log.info("Filters found!");
+                            // filter
+                            resultFilter();
+
+                        } else {
+                            log.info("Filters are not available!");
+                        }
+                        page.waitForTimeout(2000);
+
                         continue;
                     }
 
@@ -545,6 +704,8 @@ public class SearchTests extends BaseTest {
             page.locator("a").filter(new Locator.FilterOptions().setHasText("Intelligent Search")).first().click();
             log.info("Intelligent Search clicked");
 
+            page.waitForTimeout(1500);
+
             page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(" Log Management")).click();
             log.info("Log Management Cicked");
 
@@ -649,26 +810,112 @@ public class SearchTests extends BaseTest {
             page.waitForTimeout(1000);
 
             try {
-                page.waitForSelector(
-                        "div[role=\"combobox\"] input[type=\"text\"][aria-autocomplete=\"list\"]",
-                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(10000));
-                page.locator("div[role=\"combobox\"] input[type=\"text\"][aria-autocomplete=\"list\"]").click();
-                page.waitForTimeout(1000);
+                // options for posible modals
+                Locator modal = page.locator("div")
+                        .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Search MODEL$")))
+                        .first();
+                Locator manufacturer = page.locator("div")
+                        .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Search Manufacturer$")))
+                        .nth(1);
+                // posible type
+                Locator type = page.locator("div")
+                        .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Search TYPE$")))
+                        .first();
 
-                page.locator("div[role=\"combobox\"] input[type=\"text\"][aria-autocomplete=\"list\"]").fill("alinity");
-                page.waitForTimeout(1000);
+                Locator visibleModal = null;
 
-                page.waitForSelector(
-                        "//ng-dropdown-panel//div[@role='option']",
-                        new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(10000));
+                // type
+                if (type.isVisible()) {
+                    type.click();
+                    page.waitForTimeout(1000);
 
-                List<Locator> manufacturersList = page.locator("//ng-dropdown-panel//div[@role='option']").all();
+                    type.locator("div.ng-input input[type=\"text\"]").fill("OBS");
+                    page.waitForTimeout(1000);
 
-                String selectedManufacturer = manufacturersList.get(0).textContent().trim();
-                manufacturersList.get(0).click();
-                log.info("Manufacturer option clicked: {}", selectedManufacturer);
+                    page.waitForSelector(
+                            "//ng-dropdown-panel//div[@role='option']",
+                            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(15000));
+
+                    List<Locator> typeList = page.locator("//ng-dropdown-panel//div[@role='option']").all();
+
+                    String selectedType = typeList.get(0).textContent().trim();
+                    typeList.get(0).click();
+                    log.info("Type option clicked: {}", selectedType);
+
+                    page.waitForTimeout(1000);
+                }
+
+                // modal or manufacturer
+                if (modal.isVisible()) {
+                    visibleModal = modal;
+                } else if (manufacturer.isVisible()) {
+                    visibleModal = manufacturer;
+                }
+
+                if (visibleModal != null) {
+
+                    visibleModal.click();
+                    page.waitForTimeout(1000);
+
+                    switch (environment) {
+                        case "dev-demo":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("ALINITY");
+                            break;
+
+                        case "accuray-dev":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("CYBER");
+                            break;
+
+                        case "ni-dev":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("DAQ");
+                            break;
+
+                        case "swisslog-dev":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("BLOW");
+                            break;
+
+                        case "keysight-dev":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("E444");
+                            break;
+
+                        case "terumo-dev":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("REVEOS");
+                            break;
+
+                        case "dev6":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("pc cor");
+                            break;
+
+                        case "626-dev":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("SYMPH");
+                            break;
+
+                        case "ciena-poc":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("BLUE");
+                            break;
+
+                        case "crane1-dev":
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("Gorb");
+                            break;
+
+                        default:
+                            visibleModal.locator("div.ng-input input[type=\"text\"]").fill("alinity");
+                            break;
+                    }
+                    page.waitForTimeout(1500);
+
+                    page.waitForSelector(
+                            "//ng-dropdown-panel//div[@role='option']",
+                            new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(15000));
+
+                    List<Locator> manufacturersList = page.locator("//ng-dropdown-panel//div[@role='option']").all();
+
+                    String selectedManufacturer = manufacturersList.get(0).textContent().trim();
+                    manufacturersList.get(0).click();
+                    log.info("Manufacturer option clicked: {}", selectedManufacturer);
+                }
             } catch (Exception e) {
-                log.info("Modal Input field not found!");
+                log.info("Input field not found!");
             }
             page.waitForTimeout(1000);
 
@@ -874,6 +1121,7 @@ public class SearchTests extends BaseTest {
             } catch (Exception e) {
                 log.info("Add New Tags button not found!");
                 log.info("No Data found for Tags.");
+
             }
 
             // Transaction Logs

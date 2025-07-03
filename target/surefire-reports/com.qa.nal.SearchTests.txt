@@ -1,21 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.qa.nal.SearchTests
 -------------------------------------------------------------------------------
-Tests run: 12, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 252.149 s <<< FAILURE! - in com.qa.nal.SearchTests
-com.qa.nal.SearchTests.testSearchQueries  Time elapsed: 156.638 s  <<< FAILURE!
-org.opentest4j.AssertionFailedError: 
-Test failed for query: malfunctioning - Error {
-  message='Timeout 60000ms exceeded.
-  name='TimeoutError
-  stack='TimeoutError: Timeout 60000ms exceeded.
-    at ProgressController.run (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\progress.js:76:26)
-    at Frame.waitForSelector (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\frames.js:647:23)
-    at FrameDispatcher.waitForSelector (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\dispatchers\frameDispatcher.js:82:116)
-    at FrameDispatcher._handleCommand (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\dispatchers\dispatcher.js:94:40)
-    at DispatcherConnection.dispatch (C:\Users\abhay\AppData\Local\Temp\playwright-java-5946624986834350906\package\lib\server\dispatchers\dispatcher.js:307:39)
-}
-Call log:
--   - waiting for locator("pdf-viewer").locator("div") to be visible
-
-	at com.qa.nal.SearchTests.testSearchQueries(SearchTests.java:494)
-
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 224.036 s - in com.qa.nal.SearchTests
