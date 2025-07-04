@@ -20,11 +20,11 @@ import org.slf4j.*;
 public class SearchTests extends BaseTest {
 
     Dotenv dotenv = Dotenv.load();
-    private final String username = dotenv.get("APP_USERNAME");
-    private final String password = dotenv.get("PASSWORD");
-    private final String loginUrl = dotenv.get("DEVDEMO_URL");
-    private final String environment = "dev-demo";
-    private final String sheetName = "Devdemo";
+    private final String username = dotenv.get("USERNAME_TKE");
+    private final String password = dotenv.get("PASSWORD_TKE");
+    private final String loginUrl = dotenv.get("TKE_DEV");
+    private final String environment = "tke-dev";
+    private final String sheetName = "Generic";
 
     private static final Logger log = LoggerFactory.getLogger(SearchTests.class);
     public static List<Locator> resultList;
@@ -139,6 +139,7 @@ public class SearchTests extends BaseTest {
 
                 page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Yes")).click();
                 page.waitForTimeout(750);
+
             }
 
             page.waitForSelector(
@@ -184,10 +185,10 @@ public class SearchTests extends BaseTest {
     @QaseTitle("Navigate to Intelligent Search")
     public void navigateToIntelligentSearch() {
         try {
+            page.waitForTimeout(5000);
             Locator searchCard = page
                     .locator("div")
                     .filter(new Locator.FilterOptions().setHasText(Pattern.compile("^Intelligent Search$")));
-
             if (searchCard.isVisible()) {
                 page
                         .locator("div")
