@@ -268,9 +268,7 @@ public class SearchTests extends BaseTest {
 
         Locator singleResult;
 
-        singleResult = resultArea
-                .locator(".btn-link")
-                .filter(new Locator.FilterOptions().setHasNotText("open_in_new"));
+        singleResult = resultArea.locator(".btn-link").filter(new Locator.FilterOptions().setHasNotText("open_in_new"));
 
         resultList = singleResult.all();
 
@@ -1087,9 +1085,9 @@ public class SearchTests extends BaseTest {
                 log.info("Clicked on select title");
                 page.waitForTimeout(1000);
 
-                Locator listOption = page.locator(".ng-option[role=\"option\"]").first();
+                Locator listOption = page.locator(".ng-option[role=\"option\"]");
 
-                if (listOption.isVisible()) {
+                if (listOption.first().isVisible()) {
                     List<Locator> listOpttions = listOption.all();
                     log.info("Title options available: {}", listOpttions.size());
                     log.info(
@@ -1100,8 +1098,9 @@ public class SearchTests extends BaseTest {
                     Random random = new Random();
                     int randomIndex = random.nextInt(listOpttions.size());
 
-                    listOpttions.get(randomIndex).click();
                     String selectedTitle = listOpttions.get(randomIndex).textContent();
+
+                    listOpttions.get(randomIndex).click();
                     log.info("title option clicked: {}", selectedTitle);
 
                     page.waitForTimeout(1000);
@@ -1119,11 +1118,17 @@ public class SearchTests extends BaseTest {
                     log.info("Clicked on select title");
                     page.waitForTimeout(1000);
 
-                    page.locator(".ng-option[role=\"option\"]").last().click();
-                    log.info("title selected");
+                    int randomIndex2 = random.nextInt(listOpttions.size());
+
+                    String selectedTitle2 = listOpttions.get(randomIndex).textContent();
+
+                    listOpttions.get(randomIndex).click();
+                    log.info("title option clicked for second: {}", selectedTitle2);
+
                     page.waitForTimeout(1000);
 
-                    page.locator(".form-control").fill("demo tag");
+                    page.locator(".form-control").last().fill("demo tag");
+                    log.info("Filled second Tag Input Field with 'demo tag'.");
                     page.waitForTimeout(1000);
 
                     page
@@ -1131,18 +1136,22 @@ public class SearchTests extends BaseTest {
                         .filter(new Locator.FilterOptions().setHasText("Remove"))
                         .last()
                         .click();
+                    log.info("Clicked Remove button for second tag.");
                     page.waitForTimeout(1000);
 
                     page
                         .locator("button.btn-primary")
                         .filter(new Locator.FilterOptions().setHasText(" Add File Tag"))
                         .click();
+                    log.info("Clicked Add File Tag button.");
+
                     page.waitForTimeout(1000);
                 } else {
                     log.warn("Title options not available!");
 
                     page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Cancel")).click();
                     log.info("Clicked Cancel button.");
+
                     page.waitForTimeout(1000);
                 }
             }
