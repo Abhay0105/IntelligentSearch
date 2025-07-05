@@ -996,15 +996,15 @@ public class SearchTests extends BaseTest {
             page.waitForTimeout(1000);
 
             page.waitForSelector(
-                "input[type=\"text\"].mdc-text-field__input",
+                "input[type=\"text\"].mat-input-element",
                 new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE)
             );
 
-            page.locator("input[type=\"text\"].mdc-text-field__input").click();
+            page.locator("input[type=\"text\"].mat-input-element").click();
             log.info("Clicked Tag Input Field.");
             page.waitForTimeout(1000);
 
-            page.locator("input[type=\"text\"].mdc-text-field__input").fill("Dummy Tag");
+            page.locator("input[type=\"text\"].mat-input-element").fill("Dummy Tag");
             log.info("Filled Tag Input Field with 'Dummy Tag'.");
 
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Add Tag")).click();
@@ -1025,11 +1025,11 @@ public class SearchTests extends BaseTest {
             log.info("Clicked Edit icon on Tags.");
             page.waitForTimeout(1000);
 
-            page.locator("input[type=\"text\"].mdc-text-field__input").click();
+            page.locator("input[type=\"text\"].mat-input-element").click();
             log.info("Clicked Tag Input Field for editing.");
             page.waitForTimeout(1000);
 
-            page.locator("input[type=\"text\"].mdc-text-field__input").fill("test tag");
+            page.locator("input[type=\"text\"].mat-input-element").fill("test tag");
             log.info("Filled Tag Input Field with 'test tag'.");
 
             page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Update Tag")).click();
@@ -1126,9 +1126,9 @@ public class SearchTests extends BaseTest {
 
                     int randomIndex2 = random.nextInt(listOpttions.size());
 
-                    String selectedTitle2 = listOpttions.get(randomIndex).textContent();
+                    String selectedTitle2 = listOpttions.get(randomIndex2).textContent();
 
-                    listOpttions.get(randomIndex).click();
+                    listOpttions.get(randomIndex2).click();
                     log.info("title option clicked for second: {}", selectedTitle2);
 
                     page.waitForTimeout(1000);
