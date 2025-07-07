@@ -1,19 +1,34 @@
 package com.qa.nal;
 
-import com.microsoft.playwright.*;
-import com.microsoft.playwright.options.*;
-import com.qa.nal.utils.ExcelReader;
-import io.github.cdimascio.dotenv.Dotenv;
-import io.qase.commons.annotation.*;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.checkerframework.checker.units.qual.A;
-import org.junit.jupiter.api.*;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.LoadState;
+import com.microsoft.playwright.options.WaitForSelectorState;
+import com.microsoft.playwright.options.WaitUntilState;
+import com.qa.nal.utils.ExcelReader;
+
+import io.github.cdimascio.dotenv.Dotenv;
+import io.qase.commons.annotation.QaseId;
+import io.qase.commons.annotation.QaseTitle;
 
 @ExtendWith(com.qa.nal.utils.ScreenshotOnFailureWatcher.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -21,15 +36,16 @@ import org.slf4j.*;
 public class SearchTests extends BaseTest {
 
     Dotenv dotenv = Dotenv.load();
-    private final String username = dotenv.get("USERNAME_CR1");
-    private final String password = dotenv.get("PASSWORD_CR1");
-    private final String loginUrl = dotenv.get("CRANE1");
-    private final String environment = "crane1-dev";
-    private final String sheetName = "Crane1";
+    private final String username = dotenv.get("APP_USERNAME");
+    private final String password = dotenv.get("PASSWORD");
+    private final String loginUrl = dotenv.get("SWISSLOG_DEV");
+    private final String environment = "swisslog-dev";
+    private final String sheetName = "Generic";
 
     private static final Logger log = LoggerFactory.getLogger(SearchTests.class);
     public static List<Locator> resultList;
     static boolean htmlfound;
+    static boolean bodyNotFound = false;
     static boolean elementInvisible;
 
     @Test
@@ -375,6 +391,11 @@ public class SearchTests extends BaseTest {
         log.info("Index: {}", idx);
         log.info("Text: {}", text);
 
+        if(text.contains(".html")){
+            log.info("HTML Result Found: {}", text);
+            htmlfound = true;
+        }
+
         if (text.contains("open_in_new") || !element.isVisible()) {
             elementInvisible = !element.isVisible() || text.contains("open_in_new");
             return;
@@ -388,7 +409,7 @@ public class SearchTests extends BaseTest {
             new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
         );
 
-        page.waitForTimeout(3000);
+        page.waitForTimeout(5000);
 
         Locator resultBody = page.locator("div.modal-content");
 
@@ -446,7 +467,7 @@ public class SearchTests extends BaseTest {
                 new Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN)
             );
 
-            htmlfound = true;
+            bodyNotFound = true;
         }
     }
 
@@ -626,8 +647,8 @@ public class SearchTests extends BaseTest {
                     int pass = 0;
                     while (pass < 2) {
                         handleResult();
-                        if (htmlfound || elementInvisible) {
-                            htmlfound = false;
+                        if (bodyNotFound || elementInvisible) {
+                            bodyNotFound = false;
                             elementInvisible = false;
                             pass++;
                             continue;
